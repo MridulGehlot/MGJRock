@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>modal eg HTML</title>
+<script>
+//Library Code
+//This Will Be Part Of MGJRock JS Library
+function $$$(id)
+{
+var panel=document.getElementById(id);
+$$$.panel=panel;
+return $$$;
+}
+$$$.fillComboBox=function(obj)
+{
+var panel=$$$.panel;
+panel.innerHTML="";
+var list=obj.dataSource;
+var opt;
+var text=obj.text;
+var value=obj.value;
+var firstOption=obj.firstOption;
+if(firstOption!=null)
+{
+opt=document.createElement("option");
+opt.text=firstOption.text;
+opt.value=firstOption.value;
+panel.appendChild(opt);
+}
+for(var i=0;i<list.length;i++)
+{
+opt=document.createElement("option");
+opt.text=list[i][text];
+opt.value=list[i][value];
+panel.appendChild(opt);
+}
+}
+$$$.ajax=function(obj)
+{
+var url=obj.url;
+var method=obj.methodType;
+var successFunc=obj.success;
+var failureFunc=obj.failure;
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+successFunc(this.responseText);
+}
+else failureFunc();
+}
+};
+xmlHttpRequest.open(method,url,true);
+xmlHttpRequest.send();
+}
+function closeModal()
+{
+var backgroudDiv=document.getElementById('bg-div');
+backgroudDiv.style.visibility='hidden';
+document.body.appendChild($$$.block);
+}
+$$$.showModal=function(id)
+{
+var backgroudDiv=document.getElementById('bg-div');
+backgroudDiv.style.visibility='visible';
+backgroudDiv.style.opacity='70%';
+backgroudDiv.style.left='0';
+backgroudDiv.style.top='0';
+
+var mainDiv=document.getElementById('main-div');
+mainDiv.innerHTML='';
+mainDiv.style.backgroundColor='red';
+mainDiv.style.marginTop='250px';
+mainDiv.style.marginLeft='25%';
+mainDiv.style.marginRight='25%';
+mainDiv.style.marginBottom='250px';
+mainDiv.style.height='250px';
+mainDiv.style.width='auto';
+
+var btn=document.getElementById('cross');
+btn.style.marginTop='150px';
+btn.style.marginLeft='25%';
+var block=document.getElementById(id);
+$$$.block=block;
+mainDiv.appendChild(block);
+}
+//User Code
+function showXYZ()
+{
+$$$.showModal("xyz");
+}
+function showPQR()
+{
+$$$.showModal("pqr");
+}
+</script>
+</head>
+<body>
+<div id='bg-div' style='background-color:rgb(60,60,60);margin-left:0px;margin-top:0px;width:100%;height:100%;visibility:hidden;position:absolute'>
+<img src='cross.png' id='cross' style='height:100px;position:absolute' onclick='closeModal()'>
+<div id='main-div' style='background-color:red;position:relative;overflow:scroll'>
+</div>
+</div>
+<button type='button' onclick='showXYZ()'>Show xzy</button><br><br>
+<button type='button' onclick='showPQR()'>Show pqr</button><br><br>
+
+<div id='xyz'>
+<h1>Hello This is xyz</h1>
+<p>hello guys</p>
+<button>click me</button>
+<span>hello</span>
+<h1>Hello This is xyz</h1>
+<p>hello guys</p>
+<button>click me</button>
+<span>hello</span><br><br>
+<h1>Hello This is xyz</h1>
+<p>hello guys</p>
+<button>click me</button>
+<span>hello</span><br><br>
+</div>
+
+<table border='1' id='pqr'>
+<tr><td>Something 1</td><td>Something 11</td></tr>
+<tr><td>Something 2</td><td>Something 22</td></tr>
+<tr><td>Something 3</td><td>Something 33</td></tr>
+<tr><td>Something 4</td><td>Something 44</td></tr>
+<tr><td>Something 5</td><td>Something 55</td></tr>
+</table>
+</body>
+</html>

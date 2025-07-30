@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Accordian</title>
+<script>
+//This Will Be Part Of MGJRock JS Library
+function $$$(id)
+{
+var panel=document.getElementById(id);
+$$$.panel=panel;
+return $$$;
+}
+$$$.fillComboBox=function(obj)
+{
+var panel=$$$.panel;
+panel.innerHTML="";
+var list=obj.dataSource;
+var opt;
+var text=obj.text;
+var value=obj.value;
+var firstOption=obj.firstOption;
+if(firstOption!=null)
+{
+opt=document.createElement("option");
+opt.text=firstOption.text;
+opt.value=firstOption.value;
+panel.appendChild(opt);
+}
+for(var i=0;i<list.length;i++)
+{
+opt=document.createElement("option");
+opt.text=list[i][text];
+opt.value=list[i][value];
+panel.appendChild(opt);
+}
+}
+$$$.ajax=function(obj)
+{
+var url=obj.url;
+var method=obj.methodType;
+var successFunc=obj.success;
+var failureFunc=obj.failure;
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+successFunc(this.responseText);
+}
+else failureFunc();
+}
+};
+xmlHttpRequest.open(method,url,true);
+xmlHttpRequest.send();
+}
+function setError(errorPane,msg)
+{
+if(errorPane!=null) document.getElementById(errorPane).innerHTML=msg;
+}
+$$$.isValid=function(obj)
+{
+var valid=true;
+var panel=$$$.panel;
+for(const key in obj)
+{
+if(obj.hasOwnProperty(key)) // Important to check for own properties
+{
+var item=document.getElementsByName(key)[0]; 
+//Handling Radio Buttons
+if(item.type=='radio')
+{
+item=null;
+var items=document.getElementsByName(key);
+for(var i=0;i<items.length;i++)
+{
+if(items[i].checked)
+{
+item=items[i];
+break;
+}
+}
+}
+//Radio Buttons Ends Here
+entity=obj[key];
+var errorPane=entity['error-pane'];
+if(errorPane!=null) document.getElementById(errorPane).innerHTML='';
+var value=null;
+if(item!=null) value=item.value;
+var required=entity['required'];
+if(required!=null && required==true)
+{
+if(value==null || value.length==0) 
+{
+setError(errorPane,entity['errors']['required']);
+valid=false;
+}
+}
+var maxLength=entity['max-length'];
+if(maxLength!=null)
+{
+if(value.length>maxLength)
+{
+setError(errorPane,entity['errors']['max-length']);
+valid=false;
+}
+}
+var invalid=entity['invalid'];
+if(invalid!=null)
+{
+if(value==entity['invalid'])
+{
+setError(errorPane,entity['errors']['invalid']);
+valid=false;
+}
+}
+var requiredState=entity['required-state'];
+if(requiredState!=null && requiredState==true)
+{
+if(item.checked==false) 
+{
+setError(errorPane,entity['errors']['required-state']);
+valid=false;
+}
+}
+var displayAlert=entity['display-alert'];
+if(displayAlert!=null && displayAlert==true)
+{
+if(item.checked==false)
+{
+alert(entity['errors']['required-state']);
+valid=false;
+}
+}
+}//if ends
+}//for loop ends
+return valid;
+}
+$$$.onDocumentLoaded=function(funcPtr)
+{
+window.addEventListener('load',funcPtr);
+}
+$$$.toAccordian=function(id)
+{
+var panel=document.getElementById(id);
+var elements=Array.from(panel.children);
+var headings=[];
+for(var i=0;i<elements.length;i++)
+{
+var elem=elements[i];
+if(elem.tagName.toLowerCase()==='h3')
+{
+headings.push({heading:elem,content:[]});
+elem.style.cursor='pointer';
+}
+else
+{
+elem.style.display='none';
+if(headings.length>0) headings[headings.length-1].content.push(elem);
+}
+}
+for(var i=0;i<headings.length;i++)
+{
+let h=headings[i]['heading'];
+let c=headings[i]['content'];
+h.addEventListener('click',function(){
+//If content is visible, hide it (toggle)
+if(c.length>0 && c[0].style.display!=='none')
+{
+c.forEach(el => el.style.display='none');
+}
+else
+{
+//Hide all
+for(let j=0;j<headings.length;j++)
+{
+headings[j].content.forEach(el => el.style.display='none');
+}
+//Show current
+c.forEach(el => el.style.display='block');
+}
+});
+}
+}
+//Library Code Ends Here
+$$$.onDocumentLoaded(function(){
+$$$.toAccordian('mymy');
+});
+</script>
+</head>
+<body>
+<h1>Accordian Example</h1><br>
+<div id='mymy'>
+<h3>Heading 1</h3>
+<div>
+Content1 Content1 Content1 Content1<br>
+Content1 Content1 Content1 Content1<br>
+Content1 Content1 Content1 Content1<br>
+Content1 Content1 Content1 Content1<br>
+Content1 Content1 Content1 Content1<br>
+</div>
+<h3>Heading 2</h3>
+<span>
+Content2 Content2 Content2 Content2<br>
+Content2 Content2 Content2 Content2<br>
+Content2 Content2 Content2 Content2<br>
+Content2 Content2 Content2 Content2<br>
+Content2 Content2 Content2 Content2<br>
+</span>
+<p>i am para</p>
+<h3>Heading 3</h3>
+<div>
+Content3 Content3 Content3 Content3<br>
+Content3 Content3 Content3 Content3<br>
+Content3 Content3 Content3 Content3<br>
+Content3 Content3 Content3 Content3<br>
+Content3 Content3 Content3 Content3<br>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Grid Example</title>
+<script>
+//This Will Be Part Of MGJRock JS Library
+function $$$(id)
+{
+var panel=document.getElementById(id);
+$$$.panel=panel;
+return $$$;
+}
+//(1) Fill Combo Box Feature
+$$$.fillComboBox=function(obj)
+{
+var panel=$$$.panel;
+panel.innerHTML="";
+var list=obj.dataSource;
+var opt;
+var text=obj.text;
+var value=obj.value;
+var firstOption=obj.firstOption;
+if(firstOption!=null)
+{
+opt=document.createElement("option");
+opt.text=firstOption.text;
+opt.value=firstOption.value;
+panel.appendChild(opt);
+}
+for(var i=0;i<list.length;i++)
+{
+opt=document.createElement("option");
+opt.text=list[i][text];
+opt.value=list[i][value];
+panel.appendChild(opt);
+}
+}
+//(2) AJAX Feature
+$$$.ajax=function(obj)
+{
+var url=obj.url;
+var method=obj.methodType;
+var successFunc=obj.success;
+var failureFunc=obj.failure;
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+successFunc(this.responseText);
+}
+else failureFunc();
+}
+};
+xmlHttpRequest.open(method,url,true);
+xmlHttpRequest.send();
+}
+//(3) Form Validation Feature
+function setError(errorPane,msg)
+{
+if(errorPane!=null) document.getElementById(errorPane).innerHTML=msg;
+}
+$$$.isValid=function(obj)
+{
+var valid=true;
+var panel=$$$.panel;
+for(const key in obj)
+{
+if(obj.hasOwnProperty(key)) // Important to check for own properties
+{
+var item=document.getElementsByName(key)[0]; 
+//Handling Radio Buttons
+if(item.type=='radio')
+{
+item=null;
+var items=document.getElementsByName(key);
+for(var i=0;i<items.length;i++)
+{
+if(items[i].checked)
+{
+item=items[i];
+break;
+}
+}
+}
+//Radio Buttons Ends Here
+entity=obj[key];
+var errorPane=entity['error-pane'];
+if(errorPane!=null) document.getElementById(errorPane).innerHTML='';
+var value=null;
+if(item!=null) value=item.value;
+var required=entity['required'];
+if(required!=null && required==true)
+{
+if(value==null || value.length==0) 
+{
+setError(errorPane,entity['errors']['required']);
+valid=false;
+}
+}
+var maxLength=entity['max-length'];
+if(maxLength!=null)
+{
+if(value.length>maxLength)
+{
+setError(errorPane,entity['errors']['max-length']);
+valid=false;
+}
+}
+var invalid=entity['invalid'];
+if(invalid!=null)
+{
+if(value==entity['invalid'])
+{
+setError(errorPane,entity['errors']['invalid']);
+valid=false;
+}
+}
+var requiredState=entity['required-state'];
+if(requiredState!=null && requiredState==true)
+{
+if(item.checked==false) 
+{
+setError(errorPane,entity['errors']['required-state']);
+valid=false;
+}
+}
+var displayAlert=entity['display-alert'];
+if(displayAlert!=null && displayAlert==true)
+{
+if(item.checked==false)
+{
+alert(entity['errors']['required-state']);
+valid=false;
+}
+}
+}//if ends
+}//for loop ends
+return valid;
+}
+$$$.onDocumentLoaded=function(funcPtr)
+{
+window.addEventListener('load',funcPtr);
+}
+//(4) Accordian Feature
+$$$.toAccordian=function(id)
+{
+var panel=document.getElementById(id);
+var elements=Array.from(panel.children);
+var headings=[];
+for(var i=0;i<elements.length;i++)
+{
+var elem=elements[i];
+if(elem.tagName.toLowerCase()==='h3')
+{
+headings.push({heading:elem,content:[]});
+elem.style.cursor='pointer';
+}
+else
+{
+elem.style.display='none';
+if(headings.length>0) headings[headings.length-1].content.push(elem);
+}
+}
+for(var i=0;i<headings.length;i++)
+{
+let h=headings[i]['heading'];
+let c=headings[i]['content'];
+h.addEventListener('click',function(){
+//If content is visible, hide it (toggle)
+if(c.length>0 && c[0].style.display!=='none')
+{
+c.forEach(el => el.style.display='none');
+}
+else
+{
+//Hide all
+for(let j=0;j<headings.length;j++)
+{
+headings[j].content.forEach(el => el.style.display='none');
+}
+//Show current
+c.forEach(el => el.style.display='block');
+}
+});
+}
+}
+//(7) Grid Feature
+$$$.selectedRow=null;
+$$$.createDynamicListener=function(tbody,row,pageSize)
+{
+return function()
+{
+var elem=document.getElementsByTagName('tr')[row%pageSize==0?pageSize:row%pageSize];
+if($$$.selectedRow!=null)
+{
+$$$.selectedRow.style.backgroundColor='white';
+$$$.selectedRow.style.color='black';
+}
+if($$$.selectedRow==elem)
+{
+$$$.selectedRow.style.backgroundColor='white';
+$$$.selectedRow.style.color='black';
+return;
+}
+elem.style.backgroundColor='grey';
+elem.style.color='white';
+$$$.selectedRow=elem;
+}
+}
+$$$.createTable=function(id,obj,page,pageSize)
+{
+var myDataModel=obj.model;
+var panel=document.getElementById(id);
+panel.innerHTML='';
+var table=document.createElement('table');
+table.setAttribute('border','1');
+panel.appendChild(table);
+var thead=document.createElement('thead');
+table.appendChild(thead);
+var tr=document.createElement('tr');
+var th=document.createElement('th');
+thead.appendChild(tr);
+tr.appendChild(th);
+th.innerHTML='S.No.';
+for(var i=0;i<myDataModel.getColumnCount();i++)
+{
+th=document.createElement('th');
+th.innerHTML=myDataModel.getColumnName(i);
+tr.appendChild(th);
+}
+var tbody=document.createElement('tbody');
+table.appendChild(tbody);
+var td;
+var start=(page-1)*pageSize;
+var end=Math.min(start+pageSize,myDataModel.getRowCount());
+if(pageSize==-1)
+{
+start=0;
+end=myDataModel.getRowCount();
+}
+var rowSelection=obj.rowSelectionEnabled;
+if(rowSelection==null) rowSelection=false;
+for(var i=start;i<end;i++)
+{
+tr=document.createElement('tr');
+tr.style.cursor='pointer';
+if(rowSelection) 
+{
+if(pageSize==-1) tr.addEventListener('click',$$$.createDynamicListener(tbody,i+1,myDataModel.getRowCount()));
+else tr.addEventListener('click',$$$.createDynamicListener(tbody,i+1,pageSize));
+}
+tbody.appendChild(tr);
+td=document.createElement('td');
+td.innerHTML=i+1;
+td.style.textAlign='right';
+tr.appendChild(td);
+for(var j=0;j<myDataModel.getColumnCount();j++)
+{
+td=document.createElement('td');
+td.innerHTML=myDataModel.getData(i,j);
+tr.appendChild(td);
+}
+}
+if(obj.pagination)$$$.addPaginationControls(panel,obj,page,pageSize,myDataModel.getRowCount());
+}
+$$$.addPaginationControls=function(panel,obj,page,pageSize,totalRows)
+{
+var totalPages=Math.ceil(totalRows/pageSize);
+var paginationDiv=document.createElement('div');
+//Previous button
+var prevBtn=document.createElement('button');
+prevBtn.innerHTML='Previous';
+prevBtn.disabled=(page==1);
+prevBtn.onclick=function()
+{
+$$$.createTable(panel.id,obj,page-1,pageSize);
+};
+paginationDiv.appendChild(prevBtn);
+//Current Page
+var info=document.createElement('span');
+info.innerHTML=' Page '+page+' of '+totalPages+' ';
+paginationDiv.appendChild(info);
+// Next button
+var nextBtn=document.createElement('button');
+nextBtn.innerHTML='Next';
+nextBtn.disabled=(page==totalPages);
+nextBtn.onclick=function()
+{
+$$$.createTable(panel.id,obj,page+1,pageSize);
+};
+paginationDiv.appendChild(nextBtn);
+panel.appendChild(paginationDiv);
+}
+$$$.grid=function(id,obj)
+{
+var pagination=obj.pagination;
+if(pagination!=null && pagination==true) $$$.createTable(id,obj,1,obj.pageSize);
+else $$$.createTable(id,obj,-1,-1);
+}
+//Library Code Ends Here
+//User Code Here
+function DataModel()
+{
+this.data=null;
+this.getRowCount=function()
+{
+if(this.data==null) return 0;
+else return this.data.length;
+}
+//many more functions
+this.getColumnCount=function()
+{
+return 3;
+}
+this.getColumnName=function(idx)
+{
+if(idx==0) return 'Designations';
+if(idx==1) return 'Edit';
+if(idx==2) return 'Delete';
+}
+this.getData=function(row,col)
+{
+if(col==0) return this.data[row]['title'];
+if(col==1) return "<a href='edit?"+this.data[row]['code']+"'>Edit</a>";
+if(col==2) return "<a href='#'>Delete</a>";
+}
+}
+var myDataModel=new DataModel();
+function whatever(callback)
+{
+$$$.ajax({
+'url':'servletOne',
+'methodType':'GET',
+'success':function(responseData){
+var designations=JSON.parse(responseData);
+myDataModel.data=designations;
+if(typeof callback==='function') callback();
+}
+});
+}
+function doSomething()
+{
+whatever(function(){
+$$$.grid('someId',{
+'model':myDataModel,
+'pagination':true,
+'pageSize':10,
+'rowSelectionEnabled':true
+});
+}
+);
+}
+$$$.onDocumentLoaded(doSomething);
+</script>
+</head>
+<body>
+<div id='someId'>
+</div>
+</body>
+</html>

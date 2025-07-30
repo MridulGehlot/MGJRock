@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Something</title>
+<style>
+.modalHeader
+{
+height:40px;
+padding:5px;
+font-size:15pt;
+background:linear-gradient(90deg, #bdbdbd 0%, #b0b0b0 80%);
+color:#232323;
+border-bottom:1px solid #cecece;
+font-weight:600;
+text-align:center;
+}
+.modalContent
+{
+padding:5px;
+overflow:auto;
+margin:3px 0px;
+}
+.modalFooter
+{
+right:0;
+left:0;
+height:40px;
+position:absolute;
+bottom:0;
+padding:5px;
+background:linear-gradient(90deg, #bdbdbd 0%, #b0b0b0 80%);
+color:#232323;
+border-top:1px solid #cecece;
+font-weight:600;
+text-align:center;
+}
+.modalMask
+{
+background: rgba(44, 62, 80, 0.8);
+width:100%;
+height:100%;
+top:0;
+left:0;
+border:1px solid red;
+position:fixed;
+opacity:80%;
+}
+.modal
+{
+background: linear-gradient(135deg, #fafafa 0%, #cfcfcf 80%, #e0e0e0 100%);
+box-shadow: 0 8px 32px 0 rgba(30,30,30,0.38), 0 1.5px 8px 1px rgba(60,60,60,0.15);
+width:500px;
+min-width:500px;
+height:300px;
+min-height:300px;
+position:fixed;
+top:0;
+left:0;
+bottom:0;
+right:0;
+margin:auto;
+border:2px solid white;
+overflow:auto;
+border-radius:15px;
+animation: modalFadeIn 0.3s;
+}
+@keyframes modalFadeIn
+{
+from { opacity: 0; transform: scale(0.98); }
+to { opacity: 1; transform: scale(1); }
+}
+@keyframes modalFadeOut
+{
+from { opacity: 1; transform: scale(1);}
+to   { opacity: 0; transform: scale(0.96);}
+}
+.crossButton
+{
+float:right;
+padding: 5px 10px;
+cursor:pointer;
+height:24px;
+}
+</style>
+<script>
+var ds={
+"modals":[]
+};
+var $$$={
+"modals":{}
+};
+$$$.modals.show=function(mid)
+{
+var modal=null;
+for(var i=0;i<ds.modals.length;i++)
+{
+if(ds.modals[i].getContentId()==mid) 
+{
+modal=ds.modals[i];
+break;
+}
+}
+if(modal==null) return;
+modal.show();
+}
+//following is a class
+function Modal(cref)
+{
+var self=this;
+this.beforeOpen=null;
+this.afterOpen=null;
+this.beforeClose=null;
+this.afterClose=null;
+
+var contentReference=cref;
+var modalMask=document.createElement("div");
+var modal=document.createElement("div");
+modalMask.classList.add('modalMask');
+modal.classList.add('modal');
+
+//Error
+//contentReference.remove();
+
+if(contentReference.hasAttribute("beforeOpen")) this.beforeOpen=contentReference.getAttribute("beforeOpen");
+if(contentReference.hasAttribute("afterOpen")) this.afterOpen=contentReference.getAttribute("afterOpen");
+if(contentReference.hasAttribute("beforeClose")) this.beforeClose=contentReference.getAttribute("beforeClose");
+if(contentReference.hasAttribute("afterClose")) this.afterClose=contentReference.getAttribute("afterClose");
+
+if(contentReference.hasAttribute("size"))
+{
+var size=contentReference.getAttribute("size");
+let xpos=size.indexOf("x");
+if(xpos==-1) xpos=size.indexOf("X");
+if(xpos==-1) throw "In Case of modal size should be specified as widthxheight";
+if(xpos==0 || xpos==size.length-1) throw "In Case of modal size should be specified as widthxheight";
+let width=size.substring(0,xpos);
+let height=size.substring(xpos+1);
+height=Number(height)+110;
+modal.style.width=width+"px";
+modal.style.height=height+"px";
+}
+
+var headerDiv=document.createElement("div");
+headerDiv.classList.add("modalHeader");
+modal.appendChild(headerDiv);
+if(contentReference.hasAttribute("header"))
+{
+var header=contentReference.getAttribute("header");
+headerDiv.innerHTML=header;
+}
+var contentDiv=document.createElement("div");
+contentDiv.classList.add("modalContent");
+contentDiv.style.height=(modal.style.height.substring(0,modal.style.height.length-2)-110)+"px";
+contentDiv.appendChild(contentReference);
+modal.appendChild(contentDiv);
+var footerDiv=document.createElement("div");
+footerDiv.classList.add("modalFooter");
+modal.appendChild(footerDiv);
+if(contentReference.hasAttribute("footer"))
+{
+var footer=contentReference.getAttribute("footer");
+footerDiv.innerHTML=footer;
+}
+if(contentReference.hasAttribute("maskColor"))
+{
+var maskColor=contentReference.getAttribute("maskColor");
+modalMask.style.background=maskColor;
+}
+if(contentReference.hasAttribute("modalBackgroundColor"))
+{
+var modalColor=contentReference.getAttribute("modalBackgroundColor");
+modal.style.background=modalColor;
+}
+var crossButtonSpan=null;
+let crossPrefrence=true;
+if(contentReference.hasAttribute("closeButton"))
+{
+crossPrefrence=contentReference.getAttribute("closeButton");
+}
+if(crossPrefrence!="false")
+{
+crossButtonSpan=document.createElement("img");
+crossButtonSpan.src='crossButton.png';
+crossButtonSpan.classList.add("crossButton");
+var cross=document.createTextNode("X");
+crossButtonSpan.appendChild(cross);
+headerDiv.appendChild(crossButtonSpan);
+}
+
+self.getContentId=function(){
+return contentReference.id;
+};
+
+if(contentReference.hasAttribute("closeOnOutsideClick"))
+{
+var x=contentReference.getAttribute("closeOnOutsideClick");
+if(x=="true")
+{
+modalMask.onclick=function()
+{
+var flag=true;
+if(self.beforeClose) flag=eval(self.beforeClose);
+if(flag)
+{
+modal.remove();
+modalMask.remove();
+if(self.afterClose) setTimeout(function(){eval(self.afterClose)},100);
+}
+}
+}
+}
+
+document.body.appendChild(modalMask);
+document.body.appendChild(modal);
+modalMask.style.display='none';
+modal.style.display='none';
+contentReference.style.display='block';
+contentReference.style.visibility='visible';
+
+self.show=function()
+{
+var flag=true;
+if(self.beforeOpen) flag=eval(self.beforeOpen);
+if(flag)
+{
+modalMask.style.display='block';
+modal.style.display='block';
+contentReference.style.display='block';
+if(this.afterOpen) setTimeout(function(){eval(self.afterOpen)},100);
+}
+};
+if(crossButtonSpan!=null)
+{
+crossButtonSpan.onclick=function()
+{
+var flag=true;
+if(self.beforeClose) flag=eval(self.beforeClose);
+if(flag)
+{
+modalMask.style.display='none';
+modal.style.display='none';
+contentReference.style.display='none';
+if(self.afterClose) setTimeout(function(){eval(self.afterClose)},100);
+}
+};
+}
+}
+
+function createModal1()
+{
+$$$.modals.show("ab");
+}
+function createModal2()
+{
+$$$.modals.show("pq");
+}
+window.addEventListener("load",function(){
+var allTags=document.getElementsByTagName("*");
+for(var i=0;i<allTags.length;i++)
+{
+if(allTags[i].hasAttribute("forModal"))
+{
+var ee=allTags[i].getAttribute("forModal");
+if(ee=="true")
+{
+allTags[i].setAttribute('forModal','false');
+ds.modals[ds.modals.length]=new Modal(allTags[i]);
+i--;
+}
+}
+}
+});
+function open()
+{
+//alert('we are about to open');
+return true;
+}
+function close()
+{
+//alert('opps!! you cannot close');
+return true;
+}
+function abOpened()
+{
+//alert("About to open the modal");
+}
+function abClosed()
+{
+//alert("Closing the modal");
+}
+function testInput()
+{
+var ee=document.getElementById('mridulInput');
+alert(ee);
+}
+</script>
+</head>
+<body>
+<button type='button' onclick='createModal1()'>Show Modal1</button>
+<button type='button' onclick='createModal2()'>Show Modal2</button>
+<div style='display:none' id='ab' forModal="true" size="600x300" header="some header" footer="some footer" closeButton="true" maskColor="#3355ff" modalBackgroundColor="#549933" beforeOpen="open()" beforeClose="close()" afterOpen='abOpened()' afterClose='abClosed()'>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+Here are the Contents of AB div<br>
+<input id='mridulInput' type='text'></input>
+</div>
+<div style='display:none' id='pq' forModal="true" closeOnOutsideClick="true" header="My Modal" footer="&copy MGCompanies">Hello World!!!</div>
+<button type='button' onclick='testInput()'>Test Input</button>
+</body>
+</html>

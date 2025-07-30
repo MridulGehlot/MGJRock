@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>AJAX Examples</title>
+<script>
+//MGJRock Library Starts Here
+
+//#utility Section
+function MGJRockElement(element)
+{
+this.element=element;
+this.html=function(content)
+{
+if(typeof this.element.innerHTML=="string")
+{
+if(typeof content=="string") this.element.innerHTML=content;
+return this.element.innerHTML;
+}
+return null;
+}//html function ends here
+this.value=function(content)
+{
+if(typeof this.element.value)
+{
+if(typeof content=="string") this.element.value=content;
+return this.element.value;
+}
+return null;
+}//value function ends here
+}
+
+//#Main Function
+function $$$(cid)
+{
+let element=document.getElementById(cid);
+if(!element) throw "Invalid Id : "+cid;
+return new MGJRockElement(element);
+}
+
+//#Features
+//(1) AJAX Requests
+$$$.ajax=function(jsonObject)
+{
+if(!jsonObject["url"]) throw "url property is required in call to AJAX";
+let url=jsonObject["url"];
+if((typeof url)!="string") throw "url property should be of string type";
+let methodType="GET";
+if(jsonObject["methodType"])
+{
+methodType=jsonObject["methodType"];
+if((typeof methodType)!="string") throw "methodType property should be of string type";
+if(["GET","POST"].includes(methodType)==false) throw "methodType should be GET/POST";
+}
+let onSuccess=null;
+if(jsonObject["success"])
+{
+onSuccess=jsonObject["success"];
+if(typeof onSuccess!="function") throw "success property should be of function type";
+}
+let onFailure=null;
+if(jsonObject["failure"])
+{
+onFailure=jsonObject["failure"];
+if(typeof onFailure!="function") throw "failure property should be of function type";
+}
+//methodType GET/POST send code
+if(methodType=="GET")
+{
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+responseData=this.responseText;
+if(this.getResponseHeader("Content-Type").includes("application/json")) responseData=JSON.parse(responseData);
+if(onSuccess) onSuccess(responseData);
+}
+else
+{
+if(onFailure) onFailure();
+}
+}
+};
+if(jsonObject["data"])
+{
+let queryString="";
+let data=jsonObject["data"];
+for(keys in data)
+{
+if(queryString.length>0) queryString+="&";
+queryString+=encodeURI(keys);
+queryString+="=";
+queryString+=encodeURI(data[keys]);
+}
+url=url+"?"+queryString;
+}
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.send();
+}//GET ends here
+if(methodType=="POST")
+{
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+responseData=this.responseText;
+if(onSuccess) onSuccess(responseData);
+}
+else
+{
+if(onFailure) onFailure();
+}
+}
+};
+if(jsonObject["data"])
+{
+let queryString="";
+let data=jsonObject["data"];
+let sendJSON=jsonObject["sendJSON"];
+if(!sendJSON) sendJSON=false;
+if(typeof sendJSON!="boolean") throw "sendJSON should be of boolean type";
+if(sendJSON && sendJSON==true)
+{
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.setRequestHeader("Content-Type","application/json");
+xmlHttpRequest.send(JSON.stringify(data));
+return;
+}
+for(keys in data)
+{
+if(queryString.length>0) queryString+="&";
+queryString+=encodeURI(keys);
+queryString+="=";
+queryString+=encodeURI(data[keys]);
+}
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+xmlHttpRequest.send(queryString);
+}
+else throw "data property is required in POST type";
+}//POST ends here
+}
+//MGJRock Library Ends Here
+
+function submitEnquiry()
+{
+var firstName=$$$("firstName").value();
+var lastName=$$$("lastName").value();
+var age=$$$("age").value();
+var details=$$$("details");
+details.html("");
+$$$.ajax({
+"url":"servletThreeJSON",
+"methodType":"POST",
+"success":function(responseData){
+var splits=responseData.split(",");
+details.html("First Name - "+splits[0]+" ,Last Name - "+splits[1]+" ,Age - "+splits[2]);
+},
+"failure":function(){
+alert("someProblem");
+},
+"data":{
+"firstName":firstName,
+"lastName":lastName,
+"age":age,
+},
+"sendJSON":true
+});
+}
+</script>
+</head>
+<body>
+<h1>Post Type Request</h1>
+First Name <input type='text' id='firstName'><br>
+Last Name <input type='text' id='lastName'><br>
+Age <input type='text' id='age'><br>
+<button type='button' onclick='submitEnquiry()'>Enquire</button>
+<br>
+<div id='details'></div>
+<br>
+<a href='index.html'>Home</a>
+</body>
+</html>

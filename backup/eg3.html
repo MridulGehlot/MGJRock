@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>AJAX Examples</title>
+<script>
+function submitEnquiry()
+{
+var firstName=document.getElementById("firstName").value;
+var lastName=document.getElementById("lastName").value;
+var age=document.getElementById("age").value;
+var details=document.getElementById("details");
+details.innerHTML='';
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+responseData=this.responseText;
+var splits=responseData.split(",");
+details.innerHTML="First Name - "+splits[0]+" ,Last Name - "+splits[1]+" ,Age - "+splits[2];
+}
+else
+{
+alert("Some Problem");
+}
+}
+};
+var dataToSend="firstName="+encodeURI(firstName);
+dataToSend=dataToSend+"&lastName="+encodeURI(lastName);
+dataToSend=dataToSend+"&age="+encodeURI(age);
+xmlHttpRequest.open('POST','servletThree',true);
+xmlHttpRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+xmlHttpRequest.send(dataToSend);
+}
+</script>
+</head>
+<body>
+<h1>Post Type Request</h1>
+First Name <input type='text' id='firstName'><br>
+Last Name <input type='text' id='lastName'><br>
+Age <input type='text' id='age'><br>
+<button type='button' onclick='submitEnquiry()'>Enquire</button>
+<br>
+<div id='details'></div>
+<br>
+<a href='index.html'>Home</a>
+</body>
+</html>

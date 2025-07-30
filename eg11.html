@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Something</title>
+<script>
+window.addEventListener("load",function(){
+var ab=document.createElement("div");
+ab.remove();
+var allTags=document.body.getElementsByTagName("*");
+ab.appendChild(allTags[0]);
+alert(allTags.length);
+});
+</script>
+</head>
+<body>
+<div>hii</div>
+</body>
+</html>

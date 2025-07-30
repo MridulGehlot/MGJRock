@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Accordian</title>
+<script>
+//MGJRock Library Starts Here
+
+//#utility Section
+function MGJRockElement(element)
+{
+this.element=element;
+this.html=function(content)
+{
+if(typeof this.element.innerHTML=="string")
+{
+if(typeof content=="string") this.element.innerHTML=content;
+return this.element.innerHTML;
+}
+return null;
+}//html function ends here
+this.value=function(content)
+{
+if(typeof this.element.value)
+{
+if(typeof content=="string") this.element.value=content;
+return this.element.value;
+}
+return null;
+}//value function ends here
+this.fillComboBox=function(jsonData)
+{
+if(this.element.nodeName!="SELECT") throw "fillComboBox can only be applied for an SELECT type tag";
+if(!jsonData["dataSource"]) throw "dataSource property is missing in call to fillComboBox";
+if(!jsonData["text"]) throw "text property is missing in call to fillComboBox";
+if(!jsonData["value"]) throw "value property is missing in call to fillComboBox";
+let dataSource=jsonData["dataSource"];
+let text=jsonData["text"];
+let value=jsonData["value"];
+if(typeof dataSource!="object") throw "Collection should be there against Data Source";
+if(typeof text!="string") throw "text property should be of string type only";
+if(typeof value!="string") throw "value property should be of string type only";
+if(!dataSource[0][text]) throw "invalid text property : "+text;
+if(!dataSource[0][value]) throw "invalid value property : "+value;
+this.element.innerHTML="";
+let option;
+
+if(jsonData["firstOption"])
+{
+let firstOption=jsonData["firstOption"];
+if(!firstOption["text"]) throw "firstOption should have a text property";
+if(!firstOption["value"]) throw "firstOption should have a value property";
+if(typeof firstOption["text"]!="string") throw "text property in firstOption should be of string type";
+if(typeof firstOption["value"]!="string") throw "value property in firstOption should should be of string type";
+option=document.createElement("option");
+option.text=firstOption["text"];
+option.value=firstOption["value"];
+this.element.appendChild(option);
+}
+for(var i=0;i<dataSource.length;i++)
+{
+option=document.createElement("option");
+option.text=dataSource[i][text];
+option.value=dataSource[i][value];
+this.element.appendChild(option);
+}
+
+}
+}
+
+//#Main Function
+function $$$(cid)
+{
+let element=document.getElementById(cid);
+if(!element) throw "Invalid Id : "+cid;
+return new MGJRockElement(element);
+}
+
+//#Features
+//(1) AJAX Requests
+$$$.ajax=function(jsonObject)
+{
+if(!jsonObject["url"]) throw "url property is required in call to AJAX";
+let url=jsonObject["url"];
+if((typeof url)!="string") throw "url property should be of string type";
+let methodType="GET";
+if(jsonObject["methodType"])
+{
+methodType=jsonObject["methodType"];
+if((typeof methodType)!="string") throw "methodType property should be of string type";
+if(["GET","POST"].includes(methodType)==false) throw "methodType should be GET/POST";
+}
+let onSuccess=null;
+if(jsonObject["success"])
+{
+onSuccess=jsonObject["success"];
+if(typeof onSuccess!="function") throw "success property should be of function type";
+}
+let onFailure=null;
+if(jsonObject["failure"])
+{
+onFailure=jsonObject["failure"];
+if(typeof onFailure!="function") throw "failure property should be of function type";
+}
+//methodType GET/POST send code
+if(methodType=="GET")
+{
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+responseData=this.responseText;
+if(this.getResponseHeader("Content-Type").includes("application/json")) responseData=JSON.parse(responseData);
+if(onSuccess) onSuccess(responseData);
+}
+else
+{
+if(onFailure) onFailure();
+}
+}
+};
+if(jsonObject["data"])
+{
+let queryString="";
+let data=jsonObject["data"];
+for(keys in data)
+{
+if(queryString.length>0) queryString+="&";
+queryString+=encodeURI(keys);
+queryString+="=";
+queryString+=encodeURI(data[keys]);
+}
+url=url+"?"+queryString;
+}
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.send();
+}//GET ends here
+if(methodType=="POST")
+{
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+responseData=this.responseText;
+if(onSuccess) onSuccess(responseData);
+}
+else
+{
+if(onFailure) onFailure();
+}
+}
+};
+if(jsonObject["data"])
+{
+let queryString="";
+let data=jsonObject["data"];
+let sendJSON=jsonObject["sendJSON"];
+if(!sendJSON) sendJSON=false;
+if(typeof sendJSON!="boolean") throw "sendJSON should be of boolean type";
+if(sendJSON && sendJSON==true)
+{
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.setRequestHeader("Content-Type","application/json");
+xmlHttpRequest.send(JSON.stringify(data));
+return;
+}
+for(keys in data)
+{
+if(queryString.length>0) queryString+="&";
+queryString+=encodeURI(keys);
+queryString+="=";
+queryString+=encodeURI(data[keys]);
+}
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+xmlHttpRequest.send(queryString);
+}
+else throw "data property is required in POST type";
+}//POST ends here
+}
+
+//(2) Accordian
+$$$.model={
+'onStartup':[],
+'accordians':[]
+};
+$$$.accordianHeadingClicked=function(accordianIndex,idx)
+{
+if($$$.model.accordians[accordianIndex].expandedIndex!=-1) $$$.model.accordians[accordianIndex].panels[$$$.model.accordians[accordianIndex].expandedIndex].style.display='none';
+$$$.model.accordians[accordianIndex].panels[idx+1].style.display=$$$.model.accordians[accordianIndex].panels[idx+1].oldDisplay;
+$$$.model.accordians[accordianIndex].expandedIndex=idx+1;
+}
+$$$.toAccordian=function(accord)
+{
+let panels=[];
+let childrens=accord.childNodes;
+let x;
+for(x=0;x<childrens.length;x++)
+{
+if(childrens[x].nodeName=='H3') panels[panels.length]=childrens[x];
+if(childrens[x].nodeName=='DIV') panels[panels.length]=childrens[x];
+}
+if(panels.length%2!=0) throw 'Heading and Division Malformed to Creating Accordian';
+for(x=0;x<panels.length;x+=2)
+{
+if(panels[x].nodeName!='H3') throw 'Heading and Division Malformed to Creating Accordian';
+if(panels[x+1].nodeName!='DIV') throw 'Heading and Division Malformed to Creating Accordian';
+}
+function createClickHandler(accordianIndex,idx)
+{
+return function()
+{
+$$$.accordianHeadingClicked(accordianIndex,idx);
+}
+}
+let accordianIndex=$$$.model.accordians.length;
+for(x=0;x<panels.length;x+=2)
+{
+panels[x].onclick=createClickHandler(accordianIndex,x);
+panels[x].style.cursor='pointer';
+panels[x+1].oldDisplay=panels[x+1].style.display;
+panels[x+1].style.display='none';
+}
+$$$.model.accordians[accordianIndex]={
+'panels':panels,
+'expandedIndex':-1
+};
+}
+$$$.onDocumentLoaded=function(func)
+{
+if(typeof func!='function') throw 'Expected Function in call to onDocumentLoaded but received - '+(typeof func);
+$$$.model.onStartup[$$$.model.onStartup.length]=func;
+}
+$$$.initFramework=function()
+{
+let allTags=document.getElementsByTagName("*");
+let x=0;
+let t=null;
+let a=null;
+while(x<allTags.length)
+{
+t=allTags[x];
+if(t.hasAttribute("accordian"))
+{
+a=t.getAttribute("accordian");
+if(a=="true") $$$.toAccordian(t);
+}
+x++;
+}
+for(var i=0;i<$$$.model.onStartup.length;i++) $$$.model.onStartup[i]();
+}
+window.addEventListener('load',function(){
+$$$.initFramework();
+});
+//MGJRock Library Ends Here
+
+/*
+$$$.onDocumentLoaded(function(){
+$$$.toAccordian('mymy');
+$$$.toAccordian('gogo');
+});
+*/
+
+</script>
+</head>
+<body>
+<div accordian="true">
+<h3>Heading 1</h3>
+<div>
+Content1 Content1 Content1 <br>
+Content1 Content1 Content1 <br>
+Content1 Content1 Content1<br>
+Content1 Content1 Content1<br>
+</div>
+<h3>Heading 2</h3>
+<div>
+Content2 Content2 Content2<br>
+Content2 Content2 Content2<br>
+Content2 Content2 Content2<br>
+Content2 Content2 Content2<br>
+</div>
+<h3>Heading 3</h3>
+<div>
+Content3 Content3 Content3<br>
+Content3 Content3 Content3<br>
+Content3 Content3 Content3<br>
+Content3 Content3 Content3<br>
+</div>
+</div>
+<br>
+<br>
+<br>
+<div accordian="true">
+<h3>Heading 1</h3>
+<div>
+Content1 Content1 Content1 <br>
+Content1 Content1 Content1 <br>
+Content1 Content1 Content1<br>
+Content1 Content1 Content1<br>
+</div>
+<h3>Heading 2</h3>
+<div>
+Content2 Content2 Content2<br>
+Content2 Content2 Content2<br>
+Content2 Content2 Content2<br>
+Content2 Content2 Content2<br>
+</div>
+<h3>Heading 3</h3>
+<div>
+Content3 Content3 Content3<br>
+Content3 Content3 Content3<br>
+Content3 Content3 Content3<br>
+Content3 Content3 Content3<br>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>AJAX Examples</title>
+<script>
+//This Will Be Part Of MGJRock JS Library
+function $$$(id)
+{
+var panel=document.getElementById(id);
+$$$.panel=panel;
+return $$$;
+}
+$$$.fillComboBox=function(obj)
+{
+var panel=$$$.panel;
+panel.innerHTML="";
+var list=obj.dataSource;
+var opt;
+var text=obj.text;
+var value=obj.value;
+var firstOption=obj.firstOption;
+if(firstOption!=null)
+{
+opt=document.createElement("option");
+opt.text=firstOption.text;
+opt.value=firstOption.value;
+panel.appendChild(opt);
+}
+for(var i=0;i<list.length;i++)
+{
+opt=document.createElement("option");
+opt.text=list[i][text];
+opt.value=list[i][value];
+panel.appendChild(opt);
+}
+}
+$$$.ajax=function(obj)
+{
+var url=obj.url;
+var method=obj.methodType;
+var successFunc=obj.success;
+var failureFunc=obj.failure;
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+successFunc(this.responseText);
+}
+else failureFunc();
+}
+};
+xmlHttpRequest.open(method,url,true);
+xmlHttpRequest.send();
+}
+//Library Code Ends Here
+function populateDesignations()
+{
+$$$.ajax({
+"url":"servletOne",
+"methodType":"GET",
+"success":function(responseData)
+{
+var designations=JSON.parse(responseData);
+$$$("designationCode").fillComboBox({
+"dataSource":designations,
+"text":"title",
+"value":"code",
+"firstOption":{
+"text":"<select designation>",
+"value":"-1"
+}
+});
+
+},
+"failure":function()
+{
+alert("Some Problem");
+}
+});
+}
+window.addEventListener('load',populateDesignations);
+</script>
+</head>
+<body>
+<h1>Get Type Request</h1>
+<select id='designationCode'>
+</select>
+<br>
+<a href='index.html'>Home</a>
+</body>
+</html>

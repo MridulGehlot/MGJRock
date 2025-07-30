@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>ABCD HTML</title>
+<script>
+function closeModal()
+{
+var backgroudDiv=document.getElementById('bg-div');
+backgroudDiv.style.visibility='hidden';
+}
+function showModal()
+{
+var backgroudDiv=document.getElementById('bg-div');
+backgroudDiv.style.visibility='visible';
+backgroudDiv.style.opacity='70%';
+backgroudDiv.style.left='0';
+backgroudDiv.style.top='0';
+
+var mainDiv=document.getElementById('main-div');
+mainDiv.style.backgroundColor='red';
+mainDiv.style.marginTop='250px';
+mainDiv.style.marginLeft='25%';
+mainDiv.style.marginRight='25%';
+mainDiv.style.marginBottom='250px';
+mainDiv.style.height='250px';
+mainDiv.style.width='auto';
+
+var btn=document.getElementById('cross');
+btn.style.marginTop='150px';
+btn.style.marginLeft='25%';
+}
+</script>
+</head>
+<body>
+<div id='bg-div' style='background-color:rgb(60,60,60);margin-left:0px;margin-top:0px;width:100%;height:100%;visibility:hidden;position:absolute'>
+<img src='cross.png' id='cross' style='height:100px;position:absolute' onclick='closeModal()'>
+<div id='main-div' style='background-color:red;position:relative'>
+</div>
+
+</div>
+
+<button type='button' onclick='showModal()'>Show Modal</button>
+<h1>I Am Mridul Gehlot</h1>
+<p>fhdif fea prewo fdsp[  paroieo apsfoi a sporiwo  paosfi ueg ilghda hjgp </p>
+<h1>I Am Mridul Gehlot</h1>
+<p>fhdif fea prewo fdsp[  paroieo apsfoi a sporiwo  paosfi ueg ilghda hjgp </p>
+<h1>I Am Mridul Gehlot</h1>
+<p>fhdif fea prewo fdsp[  paroieo apsfoi a sporiwo  paosfi ueg ilghda hjgp </p>
+<h1>I Am Mridul Gehlot</h1>
+<a href='#'>Click me</a><br>
+<button>Click me</button><br>
+<p>fhdif fea prewo fdsp[  paroieo apsfoi a sporiwo  paosfi ueg ilghda hjgp </p>
+<h1>I Am Mridul Gehlot</h1>
+<p>fhdif fea prewo fdsp[  paroieo apsfoi a sporiwo  paosfi ueg ilghda hjgp </p>
+</body>
+</html>

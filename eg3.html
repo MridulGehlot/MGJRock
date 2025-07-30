@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>AJAX Examples</title>
+<script>
+//MGJRock Library Starts Here
+
+//#utility Section
+function MGJRockElement(element)
+{
+this.element=element;
+this.html=function(content)
+{
+if(typeof this.element.innerHTML=="string")
+{
+if(typeof content=="string") this.element.innerHTML=content;
+return this.element.innerHTML;
+}
+return null;
+}//html function ends here
+this.value=function(content)
+{
+if(typeof this.element.value)
+{
+if(typeof content=="string") this.element.value=content;
+return this.element.value;
+}
+return null;
+}//value function ends here
+}
+
+//#Main Function
+function $$$(cid)
+{
+let element=document.getElementById(cid);
+if(!element) throw "Invalid Id : "+cid;
+return new MGJRockElement(element);
+}
+
+//#Features
+//(1) AJAX Requests
+$$$.ajax=function(jsonObject)
+{
+if(!jsonObject["url"]) throw "url property is required in call to AJAX";
+let url=jsonObject["url"];
+if((typeof url)!="string") throw "url property should be of string type";
+let methodType="GET";
+if(jsonObject["methodType"])
+{
+methodType=jsonObject["methodType"];
+if((typeof methodType)!="string") throw "methodType property should be of string type";
+if(["GET","POST"].includes(methodType)==false) throw "methodType should be GET/POST";
+}
+let onSuccess=null;
+if(jsonObject["success"])
+{
+onSuccess=jsonObject["success"];
+if(typeof onSuccess!="function") throw "success property should be of function type";
+}
+let onFailure=null;
+if(jsonObject["failure"])
+{
+onFailure=jsonObject["failure"];
+if(typeof onFailure!="function") throw "failure property should be of function type";
+}
+//methodType GET/POST send code
+if(methodType=="GET")
+{
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+responseData=this.responseText;
+if(this.getResponseHeader("Content-Type").includes("application/json")) responseData=JSON.parse(responseData);
+if(onSuccess) onSuccess(responseData);
+}
+else
+{
+if(onFailure) onFailure();
+}
+}
+};
+if(jsonObject["data"])
+{
+let queryString="";
+let data=jsonObject["data"];
+for(keys in data)
+{
+if(queryString.length>0) queryString+="&";
+queryString+=encodeURI(keys);
+queryString+="=";
+queryString+=encodeURI(data[keys]);
+}
+url=url+"?"+queryString;
+}
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.send();
+}//GET ends here
+if(methodType=="POST")
+{
+var xmlHttpRequest=new XMLHttpRequest();
+xmlHttpRequest.onreadystatechange=function()
+{
+if(this.readyState==4)
+{
+if(this.status==200)
+{
+responseData=this.responseText;
+if(onSuccess) onSuccess(responseData);
+}
+else
+{
+if(onFailure) onFailure();
+}
+}
+};
+if(jsonObject["data"])
+{
+
+let queryString="";
+let data=jsonObject["data"];
+for(keys in data)
+{
+if(queryString.length>0) queryString+="&";
+queryString+=encodeURI(keys);
+queryString+="=";
+queryString+=encodeURI(data[keys]);
+}
+xmlHttpRequest.open(methodType,url,true);
+xmlHttpRequest.setHeaders("Content-Type","application/json");
+xmlHttpRequest.send(JSON.stringify(queryString));
+}
+else throw "data property is required in POST type";
+}//POST ends here
+}
+//MGJRock Library Ends Here
+
+function getDesignation()
+{
+var titleSpan=$$$("designation");
+titleSpan.html("");
+var code=$$$("designationCode").value();
+$$$.ajax({
+"url":"servletTwo",
+"methodType":"GET",
+"data":{
+"code":code
+},
+"success":function(data)
+{
+if(data=="INVALID") alert('Invalid Designation code');
+else titleSpan.html(data.title);
+}
+});
+}
+</script>
+</head>
+<body>
+<h1>Get Type Request (with data)</h1>
+Designation Code <input type='text' id='designationCode'><br>
+<button type='button' onclick='getDesignation()'>Get Designation</button>
+<br>
+<div id='designation'></div>
+<br>
+<a href='index.html'>Home</a>
+</body>
+</html>
